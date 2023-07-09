@@ -1,5 +1,6 @@
-### blabla.py ( 최초 작성자 / 수정자 )
-최초 commit 이후에는 수정자가 commit message에 수정사항 반영하여 push 하셔야 합니다. 
+### 파일명.py ( 최초 작성자 / 수정자 )
+작업파일 보내주시면 모듈화 거쳐서 최초 commit까지 조세연이 합니다. 
+이후에는 수정자가 commit message에 수정사항 반영하여 push 하셔야 합니다. 
 ```
 TellMeYourColor/ # 프로젝트 최상의 폴더
 ├── Main.py
@@ -9,7 +10,7 @@ TellMeYourColor/ # 프로젝트 최상의 폴더
 ├── ColorExtract/
 │   ├── FaceColorExtract.py (이유단, 조세연 / 이유단)
 │   └── CosmeticColorExtract.py (조재희, 김정인, 임혜신 / 김정인)  
-├── models/ (이유단, 정현호 / 이유단, 정현호) 
+├── models/ (이유단, 정현호 / 이유단, 정현호) *모델 폴더와 파일은 예시입니다. 
 │   ├── EfficientNet.pth
 │   ├── data_setup.py
 │   ├── engine.py  
