@@ -1,2 +1,9 @@
 data/
 .venv/
+Crawling/__pycache__/
+ColorExtract/__pycache__/
+.github/
+
+
+*.dat
+*.jpg
