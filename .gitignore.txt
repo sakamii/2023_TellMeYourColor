@@ -4,6 +4,7 @@ Crawling/__pycache__/
 ColorExtract/__pycache__/
 .github/
 Web/static/img
+Web/models/data
 
 *.dat
 *.jpg
