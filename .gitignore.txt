@@ -3,7 +3,7 @@ data/
 Crawling/__pycache__/
 ColorExtract/__pycache__/
 .github/
-
+Web/static/img
 
 *.dat
 *.jpg
