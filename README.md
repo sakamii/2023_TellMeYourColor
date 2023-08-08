@@ -9,9 +9,13 @@ TellMeYourColor/ # 프로젝트 최상의 폴더
 ├── ColorExtract/
 │   ├── FaceColorExtract.py (정현호)
 │   └── ...
-└── RecommendationSystem/ (김정인, 이유단)
-    ├── PopularityBased.py
-    ├── ContentsBased.py
-    └── CollaborativeFiltering.py  
+├── RecommendationSystem/ (김정인, 이유단)
+│   ├── PopularityBased.py
+│   ├── ContentsBased.py
+│   └── CollaborativeFiltering.py
+└── Web/ (조재희, 임혜신)
+    ├── ....py
+    ├── ....py
+    └── ....py  
 
 ```
