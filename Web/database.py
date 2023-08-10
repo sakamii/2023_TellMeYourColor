@@ -1,13 +1,69 @@
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData
+import pymysql.cursors
+import pandas as pd
+from config import mysql_host, mysql_user, mysql_password, mysql_db
 
-db = SQLAlchemy()
+def get_db_connection():
+    connection = pymysql.connect(
+        host=mysql_host,
+        user=mysql_user,
+        password=mysql_password,
+        db=mysql_db,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    return connection
 
-metadata = MetaData()
+def Customer():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT user_name FROM customer"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+    finally:
+        connection.close()
 
-class img_path(db.Model):
-    __table__ = MetaData.tables['img_path_data']
+def Product_score():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = 'SELECT * FROM product_score'
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+    finally:
+        connection.close()
+        
+def Recommend():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = 'SELECT * FROM recommend'
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+    finally:
+        connection.close()
 
-class customer(db.Model):
-    __table__ = MetaData.tables['customer']
+def Purchase():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = 'SELECT * FROM purchase'
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+    finally:
+        connection.close()
 
+def Product():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = 'SELECT * FROM product'
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result
+    finally:
+        connection.close()

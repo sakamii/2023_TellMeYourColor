@@ -1,22 +1,21 @@
+import csv
 import os
 from flask import Flask, request, render_template, session, redirect, url_for, send_from_directory
 # from flask_restful import Api, Resource
 from flask_cors import CORS
 from flask import jsonify
 from PIL import Image
-from models.find_personal_color import SkinToneClassifier # 얼굴 모델
-from models.ContentsBased import ContentBasedRecommendation # 추천 깡통(연습)
-from database import img_path
+from models.face.find_personal_color import SkinToneClassifier # 얼굴 모델
+# from models.ContentsBased import ContentBasedRecommendation
+from models.RS_models import  popularity_based, contents_based, collaborative, get_reco_prd_info
+from database import Customer, Product, Product_score, Purchase, Recommend
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, text
+import pandas as pd
 import random
 import string
 import pymysql
 import json
-# from data import get_data_from_table
-
-# db_path = 'mysql+pymysql://tmyc:80344I@192.168.0.66:3306/tmyc'
-# engine = create_engine(db_path)
 
 def generate_secret_key(length=32):
     characters = string.ascii_letters + string.digits + string.punctuation
@@ -24,87 +23,57 @@ def generate_secret_key(length=32):
 
 app = Flask(__name__)
 app.secret_key = generate_secret_key()
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 CORS(app)
 UPLOAD_FOLDER = './static/img/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+results = {}
 
-db = SQLAlchemy()
-app.config['SQLALCHEMY_DATABASE_URL'] = 'mysql+pymysql://tmyc:80344I@192.168.0.66:3306/tmyc'
-db.init_app(app)
-
-
-
-
-
-
-# mysql_host = '192.168.0.66'
-# mysql_user = 'tmyc'
-# mysql_password = '8O344I'
-# mysql_db = 'tmyc'
-
-# def connect_db():
-#     connection = pymysql.connect(host=mysql_host, user=mysql_user, password=mysql_password, db=mysql_db)
-#     return connection
-
-# 데이터를 가져오는 함수
-# 추천 완료 후 마지막 페이지에서 상품 보여줄 때
-# 상품을 찾기위한 데이터
-# (product, price, color_name, type, total_rating, rating_count, brand, product_id)
-# def get_data_from_database():
-#     try:
-#         connection = connect_db()
-#         with connection.cursor() as cursor:
-#             sql = 'SELECT * FROM data_default;' # sql query 작성
-#             cursor.execute(sql) # query 실행
-#             result = cursor.fetchall() # 모든 행 가져오기
-#             return result
-#     except Exception as e:
-#         print('error', e)
-#     finally:
-#         connection.close()
-
-# user_id 컬럼의 nickname, id가 존재하는지의 대한 판단
-@app.route('/user_id_exist', methods=['POST'])
+def on_json_loading_failed_return_dict(e):
+    return {}
+# user_id 컬럼의 nickname, id가 존재하는지의 대한 판단 주석
+@app.route('/user_id_exist', methods=['GET'])
 def check_nickname_exist():
-    user_id_data = get_data_from_table(table_1_name, table_1_columns)
-    # data = get_data_from_database()
-    user_ids = [record[0] for record in user_id_data]
+    user_id_data = Customer()
+    # user_id_data
+    # print('user_id_data', user_id_data)
     AppData.nickname = app_data.nickname
-    if AppData.nickname in user_ids:
-        response = ({'result': True})
+    print(AppData.nickname)
+    user_names_set = set(entry['user_name'] for entry in user_id_data)
+    # if AppData.nickname is None:
+        # return jsonify({'message': 'user_id is not'}), 400
+    if AppData.nickname in user_names_set:    
+        response = {'result': True}
+    elif AppData.nickname == None:
+        response = {'result': False}
     else:
-        response = ({'result': False})
+        response = {'result': False}
     return jsonify(response)
 
 @app.route('/review_counts', methods=['GET'])
 def check_review_count():
-    user_id_data = get_data_from_table(table_1_name, table_1_columns)
-    review_counts = {record[0]: record[1] for record in user_id_data}
     AppData.nickname = app_data.nickname
-    review_count = review_counts[AppData.nickname]
-    if review_count >= 10:
-        return jsonify({'result': True, 'review_count': review_count})
+    user_id_data = Customer()
+    data = pd.read_csv('purchase_data.csv')
+    user_id_data = pd.DataFrame(user_id_data)
+    # data = pd.DataFrame(data)
+    user_idx = user_id_data[user_id_data['user_name'] == AppData.nickname].index[0]
+    id_counts = len(data[data['user_idx'] == user_idx])
+    print('리뷰는 몇개인가요오오오오오오오오',id_counts)
+
+    if id_counts >= 10:
+        response = {'result': True}
     else:
-        return jsonify({'result': False, 'review_count': review_count})
-    
+        response = {'result': False}
+    return jsonify(response)
 
-# check_nickname_exist(user_id_data)
-
-# @app.route('/user_review_csv')
-# def check_nickname_exist():
-#     data = get_data_from_database()
-#     user_ids = [record[0] for record in data]
-#     review_counts = {record[0]: record[1] for record in data}
-#     AppData.nickname = app_data.nickname
-
-#     if AppData.nickname in user_ids:
-#         review_count = review_counts[AppData.nickname]
-#         if review_count >= 10:
-#             return jsonify({'result':True})
-#         else:
-#             return jsonify({'result':False})
-#     else:
-#         return jsonify({'result':False})
+def user_index():
+    AppData.nickname = app_data.nickname
+    user_id_data = Customer()
+    user_id_data = pd.DataFrame(user_id_data)
+    # data = pd.DataFrame(data)
+    user_idx = user_id_data[user_id_data['user_name'] == AppData.nickname].index[0]
+    return user_idx
 
 @app.route('/')
 def main():
@@ -112,8 +81,10 @@ def main():
 
 class AppData:
     nickname = None
+    skin_tone = None
 
 app_data = AppData()
+skin_tone = AppData()
 
 # 사용자의 이미지, 닉네임을 입력받은 값을 서버에서 받아 이미지는 저장해주고
 # nickname 값은 class 변수에 저장
@@ -133,13 +104,18 @@ def upload_image():
             app_data.nickname = nickname
             print(app_data.nickname)
         
-            # season, person, explain = get_prediction_data(image_path)
+            season, person, explain, season_background, jewelry, hair, blusher, lip = get_prediction_data(image_path)
 
-            # response = {
-            #     'season': season,
-            #     'person': person,
-            #     'explain': explain
-            # }
+            response = {
+                'season': season,
+                'person': person,
+                'explain': explain,
+                'season_background': season_background,
+                'jewelry': jewelry,
+                'hair': hair,
+                'blusher': blusher,
+                'lip': lip,
+            }
             
             return jsonify(response)
         else:
@@ -147,191 +123,173 @@ def upload_image():
             return jsonify(response), 400
     else:
         return render_template('second.html')
-    
+
+
 # 이미지 파일을 사용하는 퍼스널 컬러 진단 모델
 def get_prediction_data(image_path):
     classifier = SkinToneClassifier()
     cropped_face = classifier._get_face_region(image_path)
-
     if cropped_face is not None:
         skin_tone = classifier.classify_skin_tone(image_path)
 
         if skin_tone == 'spring_warm':
+            season_background = '../static/img/spring.png'
             season = '봄 웜'
-            person = '#수지, #아이유, #이제훈'
-            explain = '따뜻한 갈색 계열의 옷을 입었을 때 얼굴이 생기 있어 보이고, 오렌지(orange, 주황색)나 코럴(coral, 연한 분홍색) 계열의 색조 화장품이 잘 어울리며, 실버(silver, 은색)보다는 골드(gold, 금색) 액세서리가 자연스럽게 어울립니다. 봄웜톤의 경우 명도와 채도가 높은 노란빛이 도는 화사하고 밝은 느낌의 컬러가 잘 어울리며 어두운 색과는 맞지 않습니다.'
+            person = '#수지 #아이유 #이제훈'
+            explain = '#밝은 #부드러운 #귀여운 #따뜻한'
+            jewelry = '골드/브론즈/내츄럴진주'
+            hair = '다크브라운/라이트브라운'
+            blusher = '코랄/오렌지 계열'
+            lip = '핑크베이지/살몬핑크 계열'
         elif skin_tone == 'summer_cool':
+            season_background = '../static/img/summer.png'
             season = '여름 쿨'
-            person = '#손예진, #아이린, #김연아'
-            explain = '분홍색과 하얀색 계열의 옷을 입었을 때 얼굴이 생기 있어 보이고, 분홍빛 색조 화장품이 잘 어울리며 골드(gold, 금색)보다는 실버(silver, 은색) 액세서리가 자연스럽게 어울립니다. 여름쿨톤의 경우 명도와 채도가 높은 푸른빛이 도는 화사하고 밝은 느낌의 컬러가 잘 어울리며 검정색과 주황빛이 도는 색깔은 어울리지 않습니다.'
+            person = '#송강 #아이린 #김연아'
+            explain = '#맑은 #깨끗한 #세련된 #청량한'
+            jewelry = '실버/화이트골드/백진주'
+            hair = '블론드/블랙'
+            blusher = '푸른빛 핑크/라벤더 계열'
+            lip = '베이비핑크/로즈핑크 계열'       
         elif skin_tone == 'fall_warm':
+            season_background = '../static/img/fall.png'
             season = '가을 웜'
-            person = '#제니, #유승호, #이효리'
-            explain = '따뜻한 갈색 계열의 옷을 입었을 때 얼굴이 생기 있어 보이고, 오렌지(orange, 주황색)나 코럴(coral, 연한 분홍색) 계열의 색조 화장품이 잘 어울리며, 실버(silver, 은색)보다는 골드(gold, 금색) 액세서리가 자연스럽게 어울립니다. 가을웜톤의 경우 명도와 채도가 낮은 노란빛이 도는 흐리고 어두운 느낌의 컬러가 잘 어울리며 파란빛이 도는 색깔은 어울리지 않습니다.'
+            person = '#제니 #유승호 #이효리'
+            explain = '#내츄럴 #섹시한 #편안한 #차분한'
+            jewelry = '골드/브론즈/내추럴진주'
+            hair = '카키브라운/애쉬브라운'
+            blusher = '인디핑크/테라코타'
+            lip = '말린장미/오렌지레드 계열'
         else:
+            season_background = '../static/img/winter.png'
             season = '겨울 쿨'
-            person = '#임지연, #이동욱, #카리나'
-            explain = '분홍색과 하얀색 계열의 옷을 입었을 때 얼굴이 생기 있어 보이고, 분홍빛 색조 화장품이 잘 어울리며 골드(gold, 금색)보다는 실버(silver, 은색) 액세서리가 자연스럽게 어울립니다. 겨울쿨톤의 경우 명도와 채도의 높고 낮음에 관계없이 푸른빛이 도는 선명하고 강한 컬러가 잘 어울리며 여름쿨톤과는 반대로 검정색 또한 잘 어울립니다. 베이지와 주황빛이 도는 색깔은 어울리지 않습니니다.'
+            person = '#선미 #차은우 #카리나'
+            explain = '#시크한 #섹시한 #카리스마'
+            jewelry = '실버/화이트골드/백진주'
+            hair = '블론드/블루블랙'
+            blusher = '푸른빛이 강한 핑크계열'
+            lip = '버건디/딥로즈/첼리 계열'
 
-        return season, person, explain  
+        AppData.skin_tone = season
+        print(AppData.skin_tone)
+        return season, person, explain, season_background, jewelry, hair, blusher, lip  
     else:
+        season_background =''
         season = '얼굴이 없으십니다.'
         person = ''
         explain = ''
+        jewelry = ''
+        hair = ''
+        blusher = ''
+        lip = ''
 
-        return season, person, explain
+        return season, person, explain, season_background, jewelry, hair, blusher, lip
 
 # result.html에게 nickname을 응답해 준다.
-@app.route('/give_nickname', methods=['GET'])
-def give_nickname():
-    # nickname = request.form.get('nickname')
-    AppData.nickname = app_data.nickname
-    return app_data.nickname
-
-# result.html에게 nickname의 값이 있거나 없거나 응답해 준다. 
-# @app.route('/check_nickname', methods=['POST'])
-# def check_nickname():
+# @app.route('/give_nick_skin', methods=['GET'])
+# def give_nickname():
 #     # nickname = request.form.get('nickname')
-
 #     AppData.nickname = app_data.nickname
-
-#     if AppData.nickname:
-#         response = {'result': True}
-#     else:
-#         response = {'result': False}
-#     return jsonify(response)
+#     season= AppData.skin_tone
+#     print(AppData.nickname)
+#     print(season)
+#     data = {
+#         'nickname': AppData.nickname,
+#         'skin_tone': season
+#         }
+#     return jsonify(data)
 
 # get_prediction_data 함수를 사용해서 퍼스널 컬리 진단 결과를 result로 보내준다.
 @app.route('/result', methods=['GET', 'POST'])
 def result_page():
-    # print('app_data', app_data.nickname)
     image_path = './static/img/img.jpg'
-    # nickname = request.form.get('nickname')
-    # print('nickname', nickname)
-
     AppData.nickname = app_data.nickname
+    season, person, explain, season_background, jewelry, hair, blusher, lip = get_prediction_data(image_path)
+    return render_template('result.html', people=AppData.nickname, season=season, person=person, explain=explain, image_url=image_path, season_background=season_background, jewelry=jewelry, hair=hair, blusher=blusher, lip=lip)    
 
-    # if not nickname:
-    #     nickname = '사용자'
-    season, person, explain = get_prediction_data(image_path)
-    return render_template('result.html', people=AppData.nickname, season=season, person=person, explain=explain, image_url=image_path)    
+@app.route('/user_keywords', methods=['GET','POST'])
+def skin_data():
+    keywords = request.json # keyword
+    print(keywords)
+
+    season = AppData.skin_tone
+    print('계절 알려주세요',season)
+
+    recommend = Recommend()
+    recommend = pd.DataFrame(recommend)
+    print('recommend', recommend)
+    
+    product_score = Product_score()
+    product_score = pd.DataFrame(product_score)
+    print('product_score', product_score)
+    
+    product = Product()
+    product = pd.DataFrame(product)
+    print('product', product)
+
+    popularity_result = popularity_based(recommend, product_score, keywords, season)
+    print('popularity_result', popularity_result)
+    recommended_items = get_reco_prd_info(product, popularity_result)
+    print('recommended_items',recommended_items)
+    # return recommended_items
+
+    return render_template('final_page.html')
 
 # content_based로 연결 되도록 라우터 정의
 @app.route('/content_based')
 def content_based():
     return render_template('content_based.html')
 
+# @app.route('/get_recommendation', methods=['GET'])
+def get_recommendation():
+    recommend_type = request.args.get('recommend_type')
+    print('######################',recommend_type)
+    product_score = Product_score()
+    product_score = pd.DataFrame(product_score)
+    print('@@@@@@@@@@@@@', product_score)
+    # purchase = Purchase()
+    purchase = pd.read_csv('purchase_data.csv')
+    print('!!!!!!!!!!')
+    product = Product()
+    product = pd.DataFrame(product)
+    print('((()))')
+    recommend = Recommend()
+    recommend = pd.DataFrame(recommend)
+    print('*********')
+    AppData.nickname = app_data.nickname
+    print('&&&&&&&&&&')
+    season = AppData.skin_tone
+    print(season)
 
-# @app.route('/user_csv', methods=['POST'])
-# def user_csv_file():
-#     user_file = './user_review_cnt.csv'
-#     data = pd.read_csv(user_file)
-
-# lip_item = [{
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     # 'colorSrc': "http://127.0.0.1:5000/static/img/IMG_9900.jpg",
-#     "brand": "샤넬",
-#     "item_name": "립혜쉰",
-#     "color": "빨강",
-#     "price": "1원"
-# },
-# {
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "샤넬",
-#     "item_name": "아이새도우",
-#     "color": "브라운",
-#     "price": "2원"
-# },
-# {
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "샤넬",
-#     "item_name": "아이새도우",
-#     "color": "브라운",
-#     "price": "3원"
-# }]
-
-# eyeshadow_item = [{
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "디올",
-#     "item_name": "아이새도우",
-#     "color": "브라운",
-#     "price": "1원"
-# },
-# {
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "디올",
-#     "item_name": "아이새도우",
-#     "color": "브라운",
-#     "price": "2원"
-# },
-# {
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "디올",
-#     "item_name": "아이새도우",
-#     "color": "브라운",
-#     "price": "3원"
-# }]
-
-# blusher_item = [{
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "랑콤",
-#     "item_name": "블러셔",
-#     "color": "핑크",
-#     "price": '1원'
-# },
-# {
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "랑콤",
-#     "item_name": "아이새도우",
-#     "color": "브라운",
-#     "price": "2원"
-# },
-# {
-#     "imgSrc": "http://127.0.0.1:5000/static/img/img.jpg",
-#     "brand": "랑콤",
-#     "item_name": "아이새도우",
-#     "color": "브라운",
-#     "price": "3원"
-# }]
-
-# final_page에 상품 추천 결과물을 보내주는 코드
-@app.route('/iteminfo', methods=['POST'])
-def get_item_info():
-    data = request.get_json()
-    item_type = data.get('item_type')
+    if recommend_type == 'plus':
+        result = collaborative(product_score, purchase, user_index(), season)
+        print('협업필터링의 result입니다', result)
+        data = get_reco_prd_info(product, result)
+        print('여기를 통과했다면 리뷰가 10개 이상인 겁니다.')
+        return data
+    elif recommend_type == 'less':
+        result = contents_based(recommend, purchase, user_index(), season)
+        print('콘텐츠베이스의 result입니다',result)
+        data = get_reco_prd_info(product, result)
+        print('여기를 통과했다면 리뷰가 10개가 안되는 겁니다.')
+        return data
     
-    if item_type == 'lip':
-        result_item = lip_item
-    elif item_type == 'eyeshadow':
-        result_item = eyeshadow_item
-    elif item_type == 'blusher':
-        result_item = blusher_item
-    else:
-        result_item = []
-
-    return jsonify(result_item)
-
-
-@app.route('/get_nickname', methods=['GET'])
-def get_nickname():
-    nickname = session.get('nickname', None)
-    print(nickname)
-    return jsonify({'nickname': nickname})
-
-
-csv_filepath = './models/data/review_product_data_example.csv'
-recommender = ContentBasedRecommendation(csv_filepath)
-
-@app.route('/recommend', methods=['GET'])
-def product():
-    nickname_response = get_nickname()
-    print(nickname_response)
-    result = recommender.make_recommendation(nickname_response, user_nickname)
-    return jsonify({'result': result})
-    
-@app.route('/final_page')
+@app.route('/final_page', methods=['GET'])
 def final_page():
-    return render_template('final_page.html')
+    global results
+    cosmetic_type = request.args.get('cosmetic_type')
+    print('코스메틱 타입 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',cosmetic_type) # 이게 프린트가 되지 않고 다음으로 넘어감
+    if app_data.nickname not in results:
+        results[app_data.nickname] = get_recommendation()
+    print('올해의 노벨코딩상은 노재희씨에게', results[app_data.nickname]) # data is a dictionary which should have 3 keys, not..
+
+    # 립만 받아오고, 아이랑 블러셔는 안 받아오고 있음 
+    if cosmetic_type in results[app_data.nickname]: # data should be a dictionary consists of 3keys, cosmetic_type is a dictionary key, [lip_data, eyeshadow_data,blusher_data]
+        result = results[app_data.nickname][cosmetic_type] # result should be a dictionary 
+        print('재희씨 금연 1일차',result) 
+    else:
+        result = {}
+
+    return render_template('final_page.html', **result)
 
 if __name__ == '__main__':
     app.run(debug=True)
