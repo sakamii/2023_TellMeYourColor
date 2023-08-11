@@ -1,31 +1,16 @@
 
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+from surprise import Dataset, Reader, prediction_algorithms
+
 
 # popularity score keyword
-<<<<<<< HEAD
-=======
-def season(SKIN_TONE):
-    seasons = {
-        '봄 웜':'b',
-        '여름 쿨':'s',
-        '가을 웜':'f',
-        '겨울 쿨':'w'
-    }
-    return seasons[SKIN_TONE]
-
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
 def keywords_processing(keywords):
     # keywords예시
         # USER_KEYWORD = {
         #     'tags':['잡티', '각질', '트러블'],
-<<<<<<< HEAD
         #     'skin_tone':'중성',
         #     'score_weight':'발색력'
-=======
-        #     'skin_type':'중성',
-        #     'importance':'발색력'
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
         # }
     new_row = {
         'product_idx':-1,
@@ -48,11 +33,7 @@ def keywords_processing(keywords):
     for tag in keywords['tags']:
         if tag ==  '잡티':
             new_row['tag1']=1
-<<<<<<< HEAD
         elif tag ==  '각질':
-=======
-        elif tag == '각질':
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
             new_row['tag2']=1
         elif tag == '트러블':
             new_row['tag3']=1
@@ -80,29 +61,6 @@ def keywords_processing(keywords):
     elif keywords['skin_type'] == '중성':
         new_row['skin_type5']=1
 
-<<<<<<< HEAD
-    if keywords['score_weight'] == '발색력':
-        selected_detail_score = 'detail_score1'
-    elif keywords['score_weight'] == '지속력':
-        selected_detail_score = 'detail_score2'
-    elif keywords['score_weight'] == '발림성':
-        selected_detail_score = 'detail_score3'
-
-    return new_row, selected_detail_score
-def season(SKIN_TONE):
-    seasons = {
-        '봄웜':'b',
-        '여름쿨':'s',
-        '가을웜':'f',
-        '겨울쿨':'w'
-        
-    }
-    return seasons[SKIN_TONE]
-
-# popularity score
-def weighted_score(df, selected_detail_score, w=0.5):
-    return w * df['color_score'] + (1 - w) * (df[selected_detail_score] + df['detail_socre1'] + df['detail_score2'] + df['detail_score3'] - df['weight']) / (3 - df['weight'])
-=======
     if keywords['importance'] == '발색력':
         selected_detail_score = 'detail_score1'
     elif keywords['importance'] == '지속력':
@@ -116,7 +74,6 @@ def weighted_score(df, selected_detail_score, w=0.5):
 # popularity score
 def weighted_score(df, selected_detail_score, w=0.5):
     return w * df['color_score'] + (1 - w) * (df[selected_detail_score] + df['detail_score1'] + df['detail_score2'] + df['detail_score3'] - df['weight']) / (3 - df['weight'])
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
 
 
 
@@ -128,15 +85,9 @@ def recommend(reco_rank, reco_size = 3):
 
     # 추천 결과
     items_product_idx ={
-<<<<<<< HEAD
         '립':final_lips,
         '섀도우':final_shadows,
         '블러셔':final_cheeks
-=======
-        'lip':final_lips,
-        'eyeshadow':final_shadows,
-        'blusher':final_cheeks
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
     }
     
     return items_product_idx
@@ -144,7 +95,6 @@ def recommend(reco_rank, reco_size = 3):
 def get_reco_prd_info(product_data, items_product_idx):
     
     item_info = {
-<<<<<<< HEAD
         '립': '',
         '섀도우':'',
         '블러셔':''
@@ -152,15 +102,6 @@ def get_reco_prd_info(product_data, items_product_idx):
 
     
     for prd_type in items_product_idx:
-=======
-        'lip': '',
-        'eyeshadow':'',
-        'blusher':''
-    }
-
-    
-    for prd_type in items_product_idx: # prd_type : lip, eyeshadow, blusher
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
         type_item_info = {
             "mainImg": [],
             "colorImg": [],
@@ -171,35 +112,8 @@ def get_reco_prd_info(product_data, items_product_idx):
             "price": []
         }
 
-<<<<<<< HEAD
         for prd in items_product_idx[prd_type]:
             prd_info = product_data[product_data['product_idx']==prd]
-            type_item_info['mainImg'].appned(prd_info['product_img'].values[0])
-            type_item_info['colorImg'].appned(prd_info['color_img'].values[0])
-            type_item_info['itemUrl'].appned(prd_info['product_link'].values[0])
-            type_item_info['brand'].appned(prd_info['brand'].values[0])
-            type_item_info['itemName'].appned(prd_info['product_name'].values[0])
-            type_item_info['color'].appned(prd_info['color_name'].values[0])
-            type_item_info['price'].appned(prd_info['price'].values[0])
-            
-        item_info[prd_type] = type_item_info
-    
-    return type_item_info
-
-def popularity_based(recommend_data, product_score_data, keywords, SKIN_TONE):
-
-    ######################db로 대체########################
-    recommend_data = pd.read_csv("data/contents_based_all.csv")
-    recommend_data.rename(columns = {'index':'product_idx', 'type':'product_type'}, inplace=True)
-    product_score_data = pd.read_csv("data/score_data.csv")
-    product_score_data.rename(columns={'detail_socre1':'detail_score1','index':'product_idx','type':'product_type'}, inplace=True)
-    ########################################################
-
-    new_row, selected_detail_score =  keywords_processing(keywords)
-
-=======
-        for prd in items_product_idx[prd_type]: # prd (인덱스): final_lips, final_shadows, final_cheeks
-            prd_info = product_data[product_data['product_idx']==prd] 
             type_item_info['mainImg'].append(prd_info['product_img'].values[0])
             type_item_info['colorImg'].append(prd_info['color_img'].values[0])
             type_item_info['itemUrl'].append(prd_info['product_link'].values[0])
@@ -207,9 +121,10 @@ def popularity_based(recommend_data, product_score_data, keywords, SKIN_TONE):
             type_item_info['itemName'].append(prd_info['product_name'].values[0])
             type_item_info['color'].append(prd_info['color_name'].values[0])
             type_item_info['price'].append(prd_info['price'].values[0])
+            
         item_info[prd_type] = type_item_info
     
-    return item_info
+    return type_item_info
 
 def popularity_based(recommend_data, score_data, keywords, SKIN_TONE):                       #product_score_data
 
@@ -219,23 +134,15 @@ def popularity_based(recommend_data, score_data, keywords, SKIN_TONE):          
     # product_score_data = pd.read_csv("data/score_data.csv")
     # product_score_data.rename(columns={'detail_socre1':'detail_score1','index':'product_idx','type':'product_type'}, inplace=True)
     ########################################################
-    SKIN_TONE = season(SKIN_TONE)
-    print('뭐야뭐야뭐야뭐야뭐야뭐야뭐야무어ㅑ호',SKIN_TONE)
+
     new_row, selected_detail_score =  keywords_processing(keywords)
-    print('두 개가 출력이 되나요오??????',new_row, selected_detail_score)
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
+
     RS_pop = recommend_data[recommend_data['skin_tone'].str.contains(SKIN_TONE)]
     RS_pop = RS_pop[['product_idx','tag1','tag2','tag3','tag4','tag5','tag6','tag7','tag8','tag9', 'skin_type1','skin_type2','skin_type3','skin_type4','skin_type5', 'product_type','skin_tone']]
 
     RS_pop_matrix = RS_pop.iloc[:, :-2]
-<<<<<<< HEAD
-    RS_pop_matrix = RS_pop_matrix.append(new_row, ignore_index= True)
-=======
     new_row = pd.DataFrame(new_row, index=[RS_pop_matrix.index[-1]+1])
     RS_pop_matrix = pd.concat([RS_pop_matrix, new_row])
-    # RS_pop_matrix = RS_pop.iloc[:, :-2]
-    # RS_pop_matrix = RS_pop_matrix.append(new_row, ignore_index= True)   # pandas 2.0부터 append 불가..
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
 
     idx = RS_pop['product_idx'].copy()
     matrix = RS_pop.iloc[:,1:-2].copy()
@@ -258,17 +165,10 @@ def popularity_based(recommend_data, score_data, keywords, SKIN_TONE):          
 
 def contents_based(recommend_data, purchase_data, USER_ID, SKIN_TONE):
     ######################### db로 대체 #########################
-<<<<<<< HEAD
-    recommend_data = pd.read_csv("data/contents_based_all.csv")
-    recommend_data.rename(columns = {'index':'product_idx', 'type':'product_type'}, inplace=True)
-    #############################################################
-
-=======
     # recommend_data = pd.read_csv("data/contents_based_all.csv")
     # recommend_data.rename(columns = {'index':'product_idx', 'type':'product_type'}, inplace=True)
     #############################################################
-    SKIN_TONE = season(SKIN_TONE)
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
+
     user_purchase_df = purchase_data[purchase_data.user_idx==USER_ID]
     RS_con = recommend_data[recommend_data['skin_tone'].str.contains(SKIN_TONE)]
     user_best_product = user_purchase_df.sort_values(by = 'processed_score', ascending = False).product_idx.values[0]
@@ -290,63 +190,37 @@ def contents_based(recommend_data, purchase_data, USER_ID, SKIN_TONE):
 
 
 def collaborative(product_score_data, purchase_data, USER_ID, SKIN_TONE):
-    ##########################################
-<<<<<<< HEAD
-    product_score_data = pd.read_csv("data/score_data.csv")
-    product_score_data.rename(columns={'detail_socre1':'detail_score1','index':'product_idx','type':'product_type'}, inplace=True)
-    ########################################
-    SKIN_TONE = season(SKIN_TONE)
-    RS_coll = pd.pivot_table(purchase_data, values='processed_score', index='user_idx', columns='product_idx', aggfunc='first')
-    RS_coll['purchase_cnt'] = RS_coll.T.notnull().sum()
-    RS_coll.loc['rating_cnt'] = RS_coll.notnull().sum()
-    
-    RS_coll = RS_coll[RS_coll['purchase_cnt'] >=10 ].drop(columns = 'purchase_cnt') ##
-    RS_coll = RS_coll.T[RS_coll.loc['rating_cnt'] >=20 ].drop(columns = 'rating_cnt') ## 리뷰 수 20 이상 제품만
-    RS_coll = RS_coll.T
+    purchase_data = purchase_data[['user_idx','product_idx','processed_score']]
+    purchase_data.dropna(inplace=True)
+    purchase_data = purchase_data.drop_duplicates(subset=['reviewers','index'])
+    purchase_data['processed_score'] = purchase_data['processed_score'] * (5/3.5)
 
-    rating_matrix = RS_coll.fillna(0).copy()
-=======
-    # product_score_data = pd.read_csv("data/score_data.csv")
-    # product_score_data.rename(columns={'detail_socre1':'detail_score1','index':'product_idx','type':'product_type'}, inplace=True)
-    ########################################
-    # product_score_data = pd.read_sql("SELECT * FROM product_score_data",)
-    # purchase_data = pd.read_sql("SELECT * FROM purchase_data")
-    # purchase_data.to_csv("purchase.csv")
-    SKIN_TONE = season(SKIN_TONE)
-    RS_coll = pd.pivot_table(purchase_data, values='processed_score', index='user_idx', columns='product_idx', aggfunc='first')
-    # RS_coll.to_csv("1.csv")
-    RS_coll['purchase_cnt'] = RS_coll.T.notnull().sum()
-    # RS_coll.to_csv("test.csv")
-    RS_coll.loc['rating_cnt'] = RS_coll.notnull().sum()
-    # RS_coll.to_csv("test2.csv")
-    
-    RS_coll = RS_coll[RS_coll['purchase_cnt'] >=10 ].drop(columns = 'purchase_cnt') ##
-    # RS_coll.to_csv("test3.csv")
-    RS_coll = RS_coll.T[RS_coll.loc['rating_cnt'] >=20 ].drop(columns = 'rating_cnt') ## 리뷰 수 20 이상 제품만
-    
-    # RS_coll.to_csv("test4.csv")
+    reader = Reader(rating_scale=(0.7, 5))
+    data = Dataset.load_from_df(purchase_data[['user_idx','product_idx','processed_score']],
+                                reader=reader)
+    model = prediction_algorithms.baseline_only.BaselineOnly()
+    trainset = data.build_full_trainset()
+    model.fit(trainset)
+    # 사용자가 구매한 상품 목록 list
+    user_purchase = purchase_data[purchase_data['user_idx']==USER_ID]['index'].tolist()
+    # 전체 상품 목록 list
+    total_prd = purchase_data['product_idx'].unique().tolist()
 
-    RS_coll = RS_coll.T
-    # print('@@@@@@@@@@@@@@@@@@@@@@@@@',RS_coll)
-    rating_matrix = RS_coll.fillna(0).copy()
-    # print("재희메롱", rating_matrix)
->>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
-    user_sim = cosine_similarity(rating_matrix, rating_matrix)
-    user_sim_df = pd.DataFrame(user_sim, index = rating_matrix.index, columns = rating_matrix.index)
-    sim_scores = user_sim_df[USER_ID].copy()
-    sim_users = sim_scores.sort_values(ascending=False)[1:20].index 
+    # 사용자가 구매하지 않은 상품 목록 list
+    user_not_purchase = [prd for prd in total_prd if prd not in user_purchase]
 
-    target_user_rating = rating_matrix.loc[USER_ID]
-    target_user_rating = pd.DataFrame(target_user_rating[target_user_rating==0]) # 구매 상품 제외
-    target_user_rating.columns = ['pred_rating']
-    sim_users_df = rating_matrix.loc[sim_users]
+    # 구매하지 않은 상품에 대한 평가 예측 list
+    predictions = [model.predict(USER_ID, prd) for prd in user_not_purchase]
 
-    for prd in target_user_rating.index:
-        prd_rating = sim_users_df[prd]
-        prd_rating = prd_rating[prd_rating!=0]
-        target_user_rating.loc[prd] = prd_rating.mean()
-        
-    target_user_rating = target_user_rating.sort_values(by = 'pred_rating', ascending=False)
+    # 평가 데이터 정렬
+    def sortkey_est(pred):
+            return pred.est
+    predictions.sort(key=sortkey_est, reverse=True)
+
+
+    target_user_rating = [pred.iid for pred in predictions]
+    target_user_rating = pd.DataFrame({'product_idx':target_user_rating})        
+
     reco_rank = target_user_rating.merge(product_score_data[['skin_tone', 'product_type', 'product_idx']], how='left', on='product_idx')
     reco_rank = reco_rank.dropna(subset='product_type')
 
