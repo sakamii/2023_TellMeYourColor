@@ -1,19 +1,15 @@
 ### 
 ```
 TellMeYourColor/ # 프로젝트 최상의 폴더
-├── Main.py (조재희)
+├── Main.py 
 ├── Crawling/ 
-│   ├── FaceCrawl.py (정현호)
-│   ├── CosmeticCrawl.py (김정인) 
-│   └── ReviewCrawl.py (김정인) 
+│   ├── Face_Crawling.py 
+│   └── Review_Crawling.py 
 ├── ColorExtract/
-│   ├── FaceColorExtract.py (정현호)
-│   └── ...
-├── RecommendationSystem/ (김정인, 이유단)
-│   ├── PopularityBased.py
-│   ├── ContentsBased.py
-│   └── CollaborativeFiltering.py
-└── Web/ (조재희, 임혜신)
+│   └── find_personal_color.py
+├── RecommendationSystem/
+│   └── RS_models.py
+└── Web/
     ├── ....py
     ├── ....py
     └── ....py  
