@@ -44,7 +44,10 @@ def check_nickname_exist():
         # return jsonify({'message': 'user_id is not'}), 400
     if AppData.nickname in user_names_set:    
         response = {'result': True}
+<<<<<<< HEAD
         print(type(response))
+=======
+>>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
     elif AppData.nickname == None:
         response = {'result': False}
     else:
@@ -83,11 +86,17 @@ def main():
 class AppData:
     nickname = None
     skin_tone = None
+<<<<<<< HEAD
     keyword = None
 
 app_data = AppData()
 skin_tone = AppData()
 keyword = AppData()
+=======
+
+app_data = AppData()
+skin_tone = AppData()
+>>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
 
 # 사용자의 이미지, 닉네임을 입력받은 값을 서버에서 받아 이미지는 저장해주고
 # nickname 값은 class 변수에 저장
@@ -209,6 +218,7 @@ def result_page():
     season, person, explain, season_background, jewelry, hair, blusher, lip = get_prediction_data(image_path)
     return render_template('result.html', people=AppData.nickname, season=season, person=person, explain=explain, image_url=image_path, season_background=season_background, jewelry=jewelry, hair=hair, blusher=blusher, lip=lip)    
 
+<<<<<<< HEAD
 @app.route('/user_keywords', methods=['POST'])
 def skin_data():
     global results
@@ -222,6 +232,15 @@ def skin_data():
 
     cosmetic_type = AppData.keyword["cosmetic_type"]
     del AppData.keyword["cosmetic_type"]
+=======
+@app.route('/user_keywords', methods=['GET','POST'])
+def skin_data():
+    keywords = request.json # keyword
+    print(keywords)
+
+    season = AppData.skin_tone
+    print('계절 알려주세요',season)
+>>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
 
     recommend = Recommend()
     recommend = pd.DataFrame(recommend)
@@ -241,8 +260,12 @@ def skin_data():
     print('recommended_items',recommended_items)
     # return recommended_items
 
+<<<<<<< HEAD
     results["jh"] = recommended_items
     return redirect('/final_without_name')
+=======
+    return render_template('final_page.html')
+>>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
 
 # content_based로 연결 되도록 라우터 정의
 @app.route('/content_based')
@@ -250,12 +273,17 @@ def content_based():
     return render_template('content_based.html')
 
 # @app.route('/get_recommendation', methods=['GET'])
+<<<<<<< HEAD
 def get_recommendation():    # collaborative를 위한 함수
+=======
+def get_recommendation():
+>>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
     recommend_type = request.args.get('recommend_type')
     print('######################',recommend_type)
     product_score = Product_score()
     product_score = pd.DataFrame(product_score)
     print('@@@@@@@@@@@@@', product_score)
+<<<<<<< HEAD
     purchase = Purchase()
     purchase = pd.DataFrame(purchase)
     # purchase = pd.read_csv('purchase_data.csv')
@@ -268,6 +296,19 @@ def get_recommendation():    # collaborative를 위한 함수
     # print('*********')
     AppData.nickname = app_data.nickname
     # print('&&&&&&&&&&')
+=======
+    # purchase = Purchase()
+    purchase = pd.read_csv('purchase_data.csv')
+    print('!!!!!!!!!!')
+    product = Product()
+    product = pd.DataFrame(product)
+    print('((()))')
+    recommend = Recommend()
+    recommend = pd.DataFrame(recommend)
+    print('*********')
+    AppData.nickname = app_data.nickname
+    print('&&&&&&&&&&')
+>>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
     season = AppData.skin_tone
     print(season)
 
@@ -288,6 +329,7 @@ def get_recommendation():    # collaborative를 위한 함수
 def final_page():
     global results
     cosmetic_type = request.args.get('cosmetic_type')
+<<<<<<< HEAD
     without = request.args.get('without')
     result = None
 
@@ -305,6 +347,19 @@ def final_page():
             print('재희씨 금연 1일차',result) 
         else:
             result = {}
+=======
+    print('코스메틱 타입 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',cosmetic_type) # 이게 프린트가 되지 않고 다음으로 넘어감
+    if app_data.nickname not in results:
+        results[app_data.nickname] = get_recommendation()
+    print('올해의 노벨코딩상은 노재희씨에게', results[app_data.nickname]) # data is a dictionary which should have 3 keys, not..
+
+    # 립만 받아오고, 아이랑 블러셔는 안 받아오고 있음 
+    if cosmetic_type in results[app_data.nickname]: # data should be a dictionary consists of 3keys, cosmetic_type is a dictionary key, [lip_data, eyeshadow_data,blusher_data]
+        result = results[app_data.nickname][cosmetic_type] # result should be a dictionary 
+        print('재희씨 금연 1일차',result) 
+    else:
+        result = {}
+>>>>>>> 405bd414216966947ce40d37de2cfbe44c1f672d
 
     return render_template('final_page.html', **result)
 
